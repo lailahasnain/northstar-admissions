@@ -1,0 +1,52 @@
+[
+  {
+    "user_id": "U_001",
+    "first_name": "Alex",
+    "last_name": "Rivera",
+    "email": "alex@northstar.edu",
+    "role": "counselor",
+    "active": true,
+    "created_at": "2024-01-15T09:00:00Z",
+    "updated_at": "2025-04-12T11:20:00Z"
+  },
+  {
+    "user_id": "U_002",
+    "first_name": "Brittany",
+    "last_name": "Lee",
+    "email": "brittany@northstar.edu",
+    "role": "counselor",
+    "active": true,
+    "created_at": "2024-02-01T09:00:00Z",
+    "updated_at": "2025-05-02T14:10:00Z"
+  },
+  {
+    "user_id": "U_003",
+    "first_name": "Carlos",
+    "last_name": "Mendez",
+    "email": "carlos@northstar.edu",
+    "role": "counselor",
+    "active": true,
+    "created_at": "2024-03-10T09:00:00Z",
+    "updated_at": "2025-05-15T09:35:00Z"
+  },
+  {
+    "user_id": "U_004",
+    "first_name": "Priya",
+    "last_name": "Patel",
+    "email": "p.patel@northstar.edu",
+    "role": "admin",
+    "active": true,
+    "created_at": "2023-08-01T09:00:00Z",
+    "updated_at": "2025-05-01T13:00:00Z"
+  },
+  {
+    "user_id": "U_005",
+    "first_name": "Jordan",
+    "last_name": "Smith",
+    "email": "j.smith@northstar.edu",
+    "role": "counselor",
+    "active": false,
+    "created_at": "2022-06-01T09:00:00Z",
+    "updated_at": "2024-09-30T17:00:00Z"
+  }
+]

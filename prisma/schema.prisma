@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  externalId String   @unique // original user_id from JSON e.g. "U_001"
+  firstName  String
+  lastName   String
+  email      String   @unique
+  password   String   // bcrypt hashed
+  role       String   // "counselor" | "admin"
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  leads        Lead[]
+  tasks        Task[]
+  notes        Note[]
+  auditLogs    AuditLog[]
+  rankings     LeadRanking[]
+}
+
+model Lead {
+  id         String   @id @default(cuid())
+  externalId String   @unique // original lead_id from JSON e.g. "L_0100000"
+  firstName  String
+  lastName   String
+  email      String   @unique
+  phone      String?
+  assigneeId String
+  assignee   User     @relation(fields: [assigneeId], references: [id])
+  currentStage String // derived from latest stage_history entry
+  createdAt  DateTime
+  updatedAt  DateTime
+
+  stageHistory      StageHistory[]
+  education         Education[]
+  applications      Application[]
+  majorInterests    MajorInterest[]
+  schoolsInquired   SchoolInquired[]
+  conversations     Conversation[]
+  notes             Note[]
+  tasks             Task[]
+  engagementEvents  EngagementEvent[]
+  rankings          LeadRanking[]
+  auditLogs         AuditLog[]
+}
+
+model StageHistory {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  stage     String
+  changedAt DateTime
+  reason    String?
+}
+
+model Education {
+  id             String   @id @default(cuid())
+  leadId         String
+  lead           Lead     @relation(fields: [leadId], references: [id])
+  schoolName     String
+  schoolType     String
+  graduationYear Int?
+  gpa            Float?
+  attendedFrom   String?
+  attendedTo     String?
+}
+
+model Application {
+  id            String   @id @default(cuid())
+  externalId    String   @unique
+  leadId        String
+  lead          Lead     @relation(fields: [leadId], references: [id])
+  programName   String
+  term          String?
+  decision      String?
+  decisionDate  DateTime?
+  submittedDate DateTime?
+  status        String
+
+  checklist     ChecklistItem[]
+}
+
+model ChecklistItem {
+  id            String   @id @default(cuid())
+  externalId    String   @unique
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+  itemType      String
+  status        String   // "received" | "requested" | "missing" | "waived"
+  requestedAt   DateTime?
+  receivedAt    DateTime?
+  dueAt         DateTime?
+  notes         String?
+}
+
+model MajorInterest {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id])
+  major  String
+}
+
+model SchoolInquired {
+  id         String @id @default(cuid())
+  leadId     String
+  lead       Lead   @relation(fields: [leadId], references: [id])
+  schoolName String
+}
+
+model Conversation {
+  id             String   @id @default(cuid())
+  externalId     String   @unique
+  leadId         String
+  lead           Lead     @relation(fields: [leadId], references: [id])
+  deliveryMethod String   // "Phone" | "SMS" | "Email" | "InPerson"
+  subject        String?
+  status         String   // "open" | "closed"
+  createdAt      DateTime
+  lastActivityAt DateTime
+
+  messages Message[]
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  externalId     String   @unique
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  direction      String   // "inbound" | "outbound"
+  senderUserId   String?
+  body           String
+  sentAt         DateTime
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  externalId String  @unique
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  noteType  String
+  createdAt DateTime
+  updatedAt DateTime
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  externalId  String    @unique
+  leadId      String
+  lead        Lead      @relation(fields: [leadId], references: [id])
+  assigneeId  String
+  assignee    User      @relation(fields: [assigneeId], references: [id])
+  title       String
+  description String?
+  status      String    // "open" | "done"
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime
+}
+
+model EngagementEvent {
+  id         String   @id @default(cuid())
+  externalId String   @unique
+  leadId     String
+  lead       Lead     @relation(fields: [leadId], references: [id])
+  eventType  String
+  occurredAt DateTime
+  metadata   Json     @default("{}")
+}
+
+model LeadRanking {
+  id          String   @id @default(cuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id])
+  assigneeId  String
+  assignee    User     @relation(fields: [assigneeId], references: [id])
+  score       Float
+  reasonCodes String[] // e.g. ["overdue_task", "unanswered_inbound", "deposit_risk"]
+  rankedAt    DateTime @default(now())
+
+  @@unique([leadId]) // one ranking per lead at a time
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  leadId     String?
+  lead       Lead?    @relation(fields: [leadId], references: [id])
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String   // "contacted" | "reassigned" | "reranked" | "stage_changed"
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+}
+
+// What this schema does:
+
+// Every table maps directly to a section of the JSON data
+// externalId fields preserve the original IDs from the JSON so we can cross-reference
+// currentStage on Lead is a denormalized convenience — derived from stageHistory at load time, updated on stage changes
+// LeadRanking is our materialized scoring table — computed once, queried many times
+// AuditLog covers the observability requirement

@@ -56,6 +56,8 @@ npm run dev
 
 See `prisma/schema-diagram.md` for the full entity relationship diagram. A rendered version is available at `prisma/schema-diagram.png`.
 
+![Database Schema](prisma/schema-diagram.png)
+
 Key decisions:
 
 **`currentStage` is denormalized onto `Lead`** — derived from the latest `StageHistory` entry at load time. This avoids a subquery on every list render. Tradeoff: requires discipline to keep in sync on stage changes (we update it in the loader and would add an update on stage change mutations).

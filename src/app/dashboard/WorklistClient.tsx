@@ -26,13 +26,24 @@ interface Officer {
   lastName: string
 }
 
+interface MyStats {
+  admitted: number
+  applied: number
+  inquiry: number
+  deposited: number
+  overdueTasks: number
+  contactedToday: number
+  openConvos: number
+}
+
 interface Props {
   rankings: any[]
   userRole: string
   officers?: Officer[]
+  myStats?: MyStats | null
 }
 
-export default function WorklistClient({ rankings, userRole, officers }: Props) {
+export default function WorklistClient({ rankings, userRole, officers, myStats }: Props) {
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [stageFilter, setStageFilter] = useState('all')
@@ -78,6 +89,34 @@ export default function WorklistClient({ rankings, userRole, officers }: Props) 
 
   return (
     <div>
+      {/* Officer self-stats */}
+      {myStats && (
+        <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-400 mb-1">Contacted Today</p>
+            <p className="text-2xl font-bold text-green-600">{myStats.contactedToday}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-400 mb-1">Open Conversations</p>
+            <p className="text-2xl font-bold text-blue-600">{myStats.openConvos}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-400 mb-1">Overdue Tasks</p>
+            <p className={`text-2xl font-bold ${myStats.overdueTasks > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+              {myStats.overdueTasks}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-400 mb-2">My Pipeline</p>
+            <div className="flex gap-2 text-xs flex-wrap">
+              <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">{myStats.admitted} Admitted</span>
+              <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">{myStats.applied} Applied</span>
+              <span className="bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full">{myStats.inquiry} Inquiry</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Today's Worklist</h2>

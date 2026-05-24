@@ -43,11 +43,38 @@ export default async function DashboardPage() {
     where: { role: 'counselor', active: true },
   })
 
+  // Officer self-stats (only for counselors)
+  let myStats = null
+  if (user.role === 'counselor') {
+    const [admitted, applied, inquiry, deposited, overdueTasks, contactedToday, openConvos] = await Promise.all([
+      prisma.lead.count({ where: { assigneeId: user.id, currentStage: 'Admitted' } }),
+      prisma.lead.count({ where: { assigneeId: user.id, currentStage: 'Applied' } }),
+      prisma.lead.count({ where: { assigneeId: user.id, currentStage: 'Inquiry' } }),
+      prisma.lead.count({ where: { assigneeId: user.id, currentStage: 'Deposited' } }),
+      prisma.task.count({
+        where: { assigneeId: user.id, status: 'open', dueAt: { lt: new Date() } },
+      }),
+      prisma.auditLog.count({
+        where: {
+          userId: user.id,
+          action: 'contacted',
+          createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+        },
+      }),
+      prisma.conversation.count({
+        where: { lead: { assigneeId: user.id }, status: 'open' },
+      }),
+    ])
+
+    myStats = { admitted, applied, inquiry, deposited, overdueTasks, contactedToday, openConvos }
+  }
+
   return (
     <WorklistClient
       rankings={JSON.parse(JSON.stringify(rankings))}
       userRole={user.role}
       officers={JSON.parse(JSON.stringify(officers))}
+      myStats={myStats}
     />
   )
 }

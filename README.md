@@ -54,7 +54,7 @@ npm run dev
 
 ## Schema Design
 
-See `prisma/schema-diagram.md` for the full entity relationship diagram.
+See `prisma/schema-diagram.md` for the full entity relationship diagram. A rendered version is available at `prisma/schema-diagram.png`.
 
 Key decisions:
 
